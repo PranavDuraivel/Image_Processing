@@ -53,14 +53,17 @@ kernel = np.ones((3,3), np.uint8)
   f • h = (f ⊕ h) ⊖ h
   ```
 
-🖼️ **Figures**:
-- Thresholded image
-- Cleaned retinal mask
-- Final masked retinal image
+| Original color image Retina |
+|--------------------------------------------|
+|![Figure 1](images/retina.png) |
+
+| Original color image converted to grayscale |
+|--------------------------------------------|
+|![Figure 2](images/grayscaler.png) |
 
 ---
 
-### 🌈 Part 2: Retinal Background Normalisation
+###  Part 2: Retinal Background Normalisation
 
 📌 **Goal**: Reduce uneven illumination across the retina to enhance vascular contrast.
 
@@ -145,66 +148,112 @@ G = √(G_x² + G_y²)
 
 ---
 
-## 🧬 Part 5: Neuronal Image Processing
+## 🧪 Methodology
 
-📌 **Goal**: Segment and analyse mature neurons based on intensity and morphology.
+### 1. Grayscale Conversion & Thresholding
 
-### a) Image Preprocessing
-- Grayscale conversion
-- Global thresholding (160–255)
-- Morphological processing:
-  - Erosion `(2x2, iter=2)`
-  - Dilation `(3x3, iter=1)`
-  - Closing `(3x3)`
-  - Opening `(2x2)`
+- Converted color image to **grayscale** to simplify intensity analysis.
+- Applied **global thresholding** (160–255) to isolate mature neurons.
 
-🖼️ **Figures**:
-- Grayscale neuron image
-- Threshold mask
-- Final mature neuron segmentation
+```python
+# Binary thresholding logic
+if pixel_intensity >= 160:
+    pixel = 255  # Foreground
+else:
+    pixel = 0    # Background
+```
+### 
+
+| Original color image of neuronal explosion |
+|--------------------------------------------|
+|![Figure 1](images/original.png) |
+
+| Original color image converted to grayscale |
+|--------------------------------------------|
+|![Figure 2](images/grayscale.png) |
 
 ---
 
-### b) Brightness Histogram of Neurons
+### 2. Morphological Operations
 
-📊 **Steps**:
-- Contour detection
-- Compute average intensity in each contour
-- Plot histogram (10 bins)
+Used to refine the binary mask and improve segmentation accuracy.
 
-📐 **Code Snippet**:
+| Operation        | Kernel Size | Iterations | Purpose                                     |
+|------------------|-------------|------------|---------------------------------------------|
+| Erosion          | (2,2)       | 2          | Remove astrocytes (thin lines)              |
+| Dilation         | (3,3)       | 1          | Fill gaps in neuron bodies                  |
+| Closing          | (3,3)       | 1          | Close small holes in segmented neurons      |
+| Opening          | (2,2)       | 1          | Remove small noise and separate connections |
+| Final Dilation   | (5,5)       | 1          | Reinforce and reconnect fragmented neurons  |
+
+**📸 Figure 3:** After Erosion and Dilation  
+![Figure 3](images/figure3.png)
+
+**📸 Figure 4:** After Closing and Opening  
+![Figure 4](images/figure4.png)
+
+**📸 Figure 5:** Final refined neuron mask  
+![Figure 5](images/figure5.png)
+
+---
+
+### 3. Brightness Analysis
+
+- Contours of mature neurons were identified using `cv2.findContours()`.
+- For each region, the mean brightness (intensity) was calculated using `cv2.mean()`.
+
 ```python
-cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-cv2.mean(image, contour_mask)
+# Compute average brightness inside a contour mask
+mean_val = cv2.mean(gray_image, mask=contour_mask)[0]
 ```
 
-📈 **Insight**:
-- Mature neurons: intensity ~190–200
+- The brightness values were grouped into 10 bins and plotted using `np.histogram()`.
+
+**📸 Figure 6:** Histogram of average brightness in neurons  
+![Figure 6](images/figure6.png)
+
+🔍 **Observation**:  
+Most neurons had an average brightness of **190–200**, which aligns with the visual maturity indicators (brighter = more mature neurons).
 
 ---
 
-### c) Astrocyte Edge Detection
+### 4. Edge Detection
 
-📌 **Goal**: Segment astrocytes using edge detection.
+For **astrocyte extraction**, two edge detection methods were applied:
 
-**Methods Compared**:
-- **Sobel**
-- **Canny**
+#### Sobel Edge Detection
+- Calculates gradient in X and Y directions.
+- Quick but sensitive to noise and discontinuities.
 
-📐 **Morphological Postprocessing**:
-- Small kernel `(2x2)`
-- Erosion and dilation with adjusted iterations
+#### Canny Edge Detection
+- Multi-stage process including Gaussian blur, gradient, and hysteresis.
+- More robust, generates smoother continuous edges.
 
-🧪 **Challenges**:
-- Thin astrocyte structure
-- Noise removal limitations
-- Kernel size trade-offs
+**📸 Figure 7:** Sobel and Canny edge-detected astrocyte image  
+![Figure 7](images/figure7.png)
 
-🖼️ **Figures**:
-- Edge detection output
-- Processed astrocyte segmentation
+After edge detection, morphological operations were applied:
+
+- **Kernel Size:** (2,2) to preserve thin astrocyte structures.
+- **Erosion and Dilation**: Used different iterations to test effects on feature clarity.
+
+**📸 Figure 8:** Astrocyte image after Erosion  
+![Figure 8](images/figure8.png)
+
+**📸 Figure 9:** Astrocyte image after Dilation  
+![Figure 9](images/figure9.png)
 
 ---
+
+## 📊 Results & Visualizations
+
+- **Mature neurons** were clearly segmented using grayscale + morphological ops.
+- **Brightness histogram** validated neuron maturity level assumptions.
+- **Astrocyte detection** was limited by:
+  - Low image resolution
+  - Very thin features
+  - Kernel size constraints
+
 
 ## 🧰 Tools & Libraries
 
