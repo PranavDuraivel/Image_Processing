@@ -280,8 +280,3 @@ After edge detection, morphological operations were applied:
 
 ---
 
-## 🖼️ Sample Outputs
-
-![Retinal Mask](images/retinal_mask.png)
-![Neuron Segmentation](images/final_neuron.png)
-
