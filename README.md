@@ -132,7 +132,7 @@ G = √(G_x² + G_y²)
   ```
 - **Hounsfield Unit (HU)**:
   ```math
-  HU = 1000 * (μ - μ_water) / μ_water
+  HU = 1000 * (μ - μ_(water)) / μ_(water)
   ```
 
 🧪 **Artifacts & Issues**:
@@ -164,13 +164,9 @@ else:
 ```
 ### 
 
-| Original color image of neuronal explosion |
+| Original color image and grayscale image of neuronal explosion |
 |--------------------------------------------|
 |![Figure 1](images/original.png) |
-
-| Original color image converted to grayscale |
-|--------------------------------------------|
-|![Figure 2](images/grayscale.png) |
 
 ---
 
